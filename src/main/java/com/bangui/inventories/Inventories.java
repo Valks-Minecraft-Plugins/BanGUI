@@ -17,7 +17,7 @@ public class Inventories {
 	
 	public static final Inv GUI_HOME_BAN() {
 		Inv inv = new Inv(null, 27, "Ban Home GUI");
-		inv.setItem(12, Utils.item("Online", "Ban Online Players", Material.SAPLING));
+		inv.setItem(12, Utils.item("Online", "Ban Online Players", Material.OAK_SAPLING));
 		inv.setItem(14, Utils.item("Offline", "Ban Offline Players", Material.BONE));
 		return inv;
 	}

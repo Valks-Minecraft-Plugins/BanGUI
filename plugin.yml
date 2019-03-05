@@ -2,7 +2,7 @@ name: BanGui
 main: com.bangui.BanGUI
 author: valkyrienyanko
 version: 1.0
-api-version: 1.8.8
+api-version: 1.13
 commands:
    guiban:
      description: Ban a player.

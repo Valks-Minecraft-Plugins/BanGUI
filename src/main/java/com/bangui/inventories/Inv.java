@@ -14,11 +14,8 @@ public class Inv {
 	public Inv(InventoryHolder owner, int size, String title) {
 		inv = Bukkit.createInventory(owner, size, title);
 		
-		ItemStack background = Utils.item("&8---", "&8---", Material.STAINED_GLASS_PANE);
-		background.setDurability((short) 15);
-		
 		for (int n = 0; n < size; n++) {
-			inv.setItem(n, background);
+			inv.setItem(n, Utils.item("&8---", "&8---", Material.BLACK_STAINED_GLASS_PANE));
 		}
 	}
 	

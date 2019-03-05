@@ -35,9 +35,9 @@ public class Utils {
 	}
 	
 	public static ItemStack playerItemSkullInfo(OfflinePlayer p) {
-		ItemStack skull = new ItemStack(Material.SKULL_ITEM, 1, (byte) 3);
+		ItemStack skull = new ItemStack(Material.PLAYER_HEAD);
 		SkullMeta meta = (SkullMeta) skull.getItemMeta();
-		meta.setOwner(p.getName());
+		meta.setOwningPlayer(p);
 		meta.setDisplayName(Utils.color("&f" + p.getName()));
 		skull.setItemMeta(meta);
 		
@@ -45,9 +45,9 @@ public class Utils {
 	}
 	
 	public static ItemStack playerItemSkullInfo(Player p) {
-		ItemStack skull = new ItemStack(Material.SKULL_ITEM, 1, (byte) 3);
+		ItemStack skull = new ItemStack(Material.PLAYER_HEAD);
 		SkullMeta meta = (SkullMeta) skull.getItemMeta();
-		meta.setOwner(p.getName());
+		meta.setOwningPlayer(p);
 		meta.setDisplayName(Utils.color("&f" + p.getName()));
 		skull.setItemMeta(meta);
 		

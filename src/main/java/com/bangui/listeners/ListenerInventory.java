@@ -14,7 +14,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 
 import com.bangui.inventories.Inventories;
 import com.bangui.utils.Utils;
@@ -24,8 +23,7 @@ public class ListenerInventory implements Listener {
 	
 	@EventHandler
 	private void invClickEvent(InventoryClickEvent e) {
-		Inventory inv = e.getInventory();
-		String invName = inv.getName();
+		String invName = e.getView().getTitle();
 		int slot = e.getSlot();
 		Player admin = (Player) e.getWhoClicked();
 		
@@ -203,9 +201,7 @@ public class ListenerInventory implements Listener {
 		int size = 45;
 		Inventory inv = Bukkit.createInventory(admin, size, "Ban Options");
 		for (int n = 0; n < size; n++) {
-			ItemStack black_glass_pane = Utils.item("&8---", "&8---", Material.STAINED_GLASS_PANE);
-			black_glass_pane.setDurability((short) 15);
-			inv.setItem(n, black_glass_pane);
+			inv.setItem(n, Utils.item("&8---", "&8---", Material.BLACK_STAINED_GLASS_PANE));
 		}
 		inv.setItem(10, Utils.item("Camping", "30 Minutes", Material.FEATHER));
 		inv.setItem(12, Utils.item("Not Listening to Staff", "1 Day", Material.STICK));
