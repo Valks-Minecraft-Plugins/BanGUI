@@ -6,38 +6,45 @@ import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 public class Utils {
-	public static Inventory banInv() {
-		int size = 54;
-		Inventory inv = Bukkit.createInventory(null, size, "Ban GUI by Valk");
-		
-		for (int n = 0; n < size; n++) {
-			ItemStack black_glass_pane = Utils.item("&8---", "&8---", Material.STAINED_GLASS_PANE);
-			black_glass_pane.setDurability((short) 15);
-			inv.setItem(n, black_glass_pane);
-		}
-		
-		int n = 0;
-		for (Player p : Bukkit.getOnlinePlayers()) {
-			if (n < size) {
-				inv.setItem(n, playerItemSkullInfo(p));
-				n++;
-			} else {
-				break;
+	public static List<OfflinePlayer> getOfflineNotBannedPlayers(){
+		List<OfflinePlayer> bannedPlayers = new ArrayList<OfflinePlayer>();
+		for (OfflinePlayer p : Bukkit.getOfflinePlayers()) {
+			if (!p.isBanned()) {
+				bannedPlayers.add(p);
 			}
 		}
-		
-		return inv;
+		return bannedPlayers;
 	}
 	
-	private static ItemStack playerItemSkullInfo(Player p) {
+	public static List<OfflinePlayer> getOfflineBannedPlayers() {
+		List<OfflinePlayer> bannedPlayers = new ArrayList<OfflinePlayer>();
+		for (OfflinePlayer p : Bukkit.getOfflinePlayers()) {
+			if (p.isBanned()) {
+				bannedPlayers.add(p);
+			}
+		}
+		return bannedPlayers;
+	}
+	
+	public static ItemStack playerItemSkullInfo(OfflinePlayer p) {
+		ItemStack skull = new ItemStack(Material.SKULL_ITEM, 1, (byte) 3);
+		SkullMeta meta = (SkullMeta) skull.getItemMeta();
+		meta.setOwner(p.getName());
+		meta.setDisplayName(Utils.color("&f" + p.getName()));
+		skull.setItemMeta(meta);
+		
+		return skull;
+	}
+	
+	public static ItemStack playerItemSkullInfo(Player p) {
 		ItemStack skull = new ItemStack(Material.SKULL_ITEM, 1, (byte) 3);
 		SkullMeta meta = (SkullMeta) skull.getItemMeta();
 		meta.setOwner(p.getName());
