@@ -1,4 +1,6 @@
 # BanGUI
+This is officially my first public plugin.
+
 Plugin request from Cowz_#1492
 
 Currently only for 1.8.8.
