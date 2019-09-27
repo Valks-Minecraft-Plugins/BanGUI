@@ -4,6 +4,7 @@ import org.bukkit.BanList.Type;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -15,6 +16,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 
+import com.bangui.BanGUI;
 import com.bangui.inventories.Inventories;
 import com.bangui.utils.Utils;
 
@@ -25,16 +27,23 @@ public class ListenerInventory implements Listener {
 	private void invClickEvent(InventoryClickEvent e) {
 		String invName = e.getView().getTitle();
 		int slot = e.getSlot();
-		Player admin = (Player) e.getWhoClicked();
+		Player user = (Player) e.getWhoClicked();
+		
+		List<UUID> using = BanGUI.using;
+		
+		// Block the chest renaming exploit.
+		if (!using.contains(user.getUniqueId())) {
+			return;
+		}
 		
 		if (invName.equals("Ban Home GUI")) {
 			e.setCancelled(true);
 			switch (slot) {
 			case 12:
-				admin.openInventory(Inventories.GUI_BAN_ONLINE().getInv());
+				user.openInventory(Inventories.GUI_BAN_ONLINE().getInv());
 				break;
 			case 14:
-				admin.openInventory(Inventories.GUI_BAN_OFFLINE().getInv());
+				user.openInventory(Inventories.GUI_BAN_OFFLINE().getInv());
 				break;
 			default:
 				break;
@@ -45,10 +54,10 @@ public class ListenerInventory implements Listener {
 			e.setCancelled(true);
 			switch (slot) {
 			case 12:
-				admin.openInventory(Inventories.GUI_HOME_BAN().getInv());
+				user.openInventory(Inventories.GUI_HOME_BAN().getInv());
 				break;
 			case 14:
-				admin.openInventory(Inventories.GUI_PARDON().getInv());
+				user.openInventory(Inventories.GUI_PARDON().getInv());
 				break;
 			default:
 				break;
@@ -60,8 +69,8 @@ public class ListenerInventory implements Listener {
 			if (slot < Utils.getOfflineBannedPlayers().size()) {
 				OfflinePlayer p = Utils.getOfflineBannedPlayers().get(slot);
 				Bukkit.getServer().getBanList(Type.NAME).pardon(p.getName());
-				admin.sendMessage(Utils.color("&7Pardoned &f" + p.getName() + "&7."));
-				admin.closeInventory();
+				user.sendMessage(Utils.color("&7Pardoned &f" + p.getName() + "&7."));
+				cleanupUser(user, using);
 			}
 		}
 		
@@ -69,8 +78,8 @@ public class ListenerInventory implements Listener {
 			e.setCancelled(true);
 			if (slot < Utils.getOfflineNotBannedPlayers().size()) {
 				OfflinePlayer p = Utils.getOfflineNotBannedPlayers().get(slot);
-				admin.openInventory(banPlayerGUI(admin));
-				banTracker.put(admin.getUniqueId(), p.getUniqueId());
+				user.openInventory(banPlayerGUI(user));
+				banTracker.put(user.getUniqueId(), p.getUniqueId());
 			}
 		}
 		
@@ -78,61 +87,61 @@ public class ListenerInventory implements Listener {
 			e.setCancelled(true);
 			if (slot < Bukkit.getOnlinePlayers().size()) {
 				Player p = (Player) Bukkit.getOnlinePlayers().toArray()[slot];
-				admin.openInventory(banPlayerGUI(admin));
-				banTracker.put(admin.getUniqueId(), p.getUniqueId());
+				user.openInventory(banPlayerGUI(user));
+				banTracker.put(user.getUniqueId(), p.getUniqueId());
 			}
 		}
 		
 		if (invName.equals("Ban Options")) {
 			e.setCancelled(true);
 			
-			OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(banTracker.get(admin.getUniqueId()));
-			Player onlinePlayer = Bukkit.getPlayer(banTracker.get(admin.getUniqueId()));
+			OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(banTracker.get(user.getUniqueId()));
+			Player onlinePlayer = Bukkit.getPlayer(banTracker.get(user.getUniqueId()));
 			
 			if (offlinePlayer != null) {
 				switch (slot) {
 				case 10:
-					if (offlinePlayer == admin) {
-						admin.sendMessage(Utils.color("&7You cannot ban yourself!"));
-						admin.closeInventory();
+					if (offlinePlayer == user) {
+						user.sendMessage(Utils.color("&7You cannot ban yourself!"));
+						cleanupUser(user, using);
 						return;
 					}
-					admin.sendMessage(Utils.color("&7Banned &f" + offlinePlayer.getName() + "&7 for camping."));
-					banPlayer(offlinePlayer.getUniqueId(), "Camping", new Date(System.currentTimeMillis()+30*60*1000), admin.getName());
-					admin.closeInventory();
+					user.sendMessage(Utils.color("&7Banned &f" + offlinePlayer.getName() + "&7 for camping."));
+					banPlayer(offlinePlayer.getUniqueId(), "Camping", new Date(System.currentTimeMillis()+30*60*1000), user.getName());
+					cleanupUser(user, using);
 					break;
 				case 12:
-					if (offlinePlayer == admin) {
-						admin.sendMessage(Utils.color("&7You cannot ban yourself!"));
-						admin.closeInventory();
+					if (offlinePlayer == user) {
+						user.sendMessage(Utils.color("&7You cannot ban yourself!"));
+						cleanupUser(user, using);
 						return;
 					}
-					admin.sendMessage(Utils.color("&7Banned &f" + offlinePlayer.getName() + "&7 for not listening to staff."));
-					banPlayer(offlinePlayer.getUniqueId(), "Not Listening to Staff", new Date(System.currentTimeMillis()+24*60*60*1000), admin.getName());
-					admin.closeInventory();
+					user.sendMessage(Utils.color("&7Banned &f" + offlinePlayer.getName() + "&7 for not listening to staff."));
+					banPlayer(offlinePlayer.getUniqueId(), "Not Listening to Staff", new Date(System.currentTimeMillis()+24*60*60*1000), user.getName());
+					cleanupUser(user, using);
 					break;
 				case 14:
-					if (offlinePlayer == admin) {
-						admin.sendMessage(Utils.color("&7You cannot ban yourself!"));
-						admin.closeInventory();
+					if (offlinePlayer == user) {
+						user.sendMessage(Utils.color("&7You cannot ban yourself!"));
+						cleanupUser(user, using);
 						return;
 					}
-					admin.sendMessage(Utils.color("&7Banned &f" + offlinePlayer.getName() + "&7 for abusing."));
-					banPlayer(offlinePlayer.getUniqueId(), "Abusing", new Date(System.currentTimeMillis()+2*24*60*60*1000), admin.getName());
-					admin.closeInventory();
+					user.sendMessage(Utils.color("&7Banned &f" + offlinePlayer.getName() + "&7 for abusing."));
+					banPlayer(offlinePlayer.getUniqueId(), "Abusing", new Date(System.currentTimeMillis()+2*24*60*60*1000), user.getName());
+					cleanupUser(user, using);
 					break;
 				case 16:
-					if (offlinePlayer == admin) {
-						admin.sendMessage(Utils.color("&7You cannot ban yourself!"));
-						admin.closeInventory();
+					if (offlinePlayer == user) {
+						user.sendMessage(Utils.color("&7You cannot ban yourself!"));
+						cleanupUser(user, using);
 						return;
 					}
-					admin.sendMessage(Utils.color("&7Banned &f" + offlinePlayer.getName() + "&7 for hacking."));
-					banPlayer(offlinePlayer.getUniqueId(), "Hacking", new Date(System.currentTimeMillis()+7*24*60*60*1000), admin.getName());
-					admin.closeInventory();
+					user.sendMessage(Utils.color("&7Banned &f" + offlinePlayer.getName() + "&7 for hacking."));
+					banPlayer(offlinePlayer.getUniqueId(), "Hacking", new Date(System.currentTimeMillis()+7*24*60*60*1000), user.getName());
+					cleanupUser(user, using);
 					break;
 				case 31:
-					admin.openInventory(Inventories.GUI_HOME_BAN().getInv());
+					user.openInventory(Inventories.GUI_HOME_BAN().getInv());
 					break;
 				default:
 					e.setCancelled(true);
@@ -142,35 +151,35 @@ public class ListenerInventory implements Listener {
 			}
 			
 			if (onlinePlayer != null) {
-				if (onlinePlayer == admin) {
-					admin.sendMessage(Utils.color("&7You cannot ban yourself!"));
-					admin.closeInventory();
+				if (onlinePlayer == user) {
+					user.sendMessage(Utils.color("&7You cannot ban yourself!"));
+					cleanupUser(user, using);
 					return;
 				}
 			
 				switch (slot) {
 				case 10:
-					admin.sendMessage(Utils.color("&7Banned &f" + onlinePlayer.getName() + "&7 for camping."));
-					banPlayer(onlinePlayer.getUniqueId(), "Camping", new Date(System.currentTimeMillis()+30*60*1000), admin.getName());
-					admin.closeInventory();
+					user.sendMessage(Utils.color("&7Banned &f" + onlinePlayer.getName() + "&7 for camping."));
+					banPlayer(onlinePlayer.getUniqueId(), "Camping", new Date(System.currentTimeMillis()+30*60*1000), user.getName());
+					cleanupUser(user, using);
 					break;
 				case 12:
-					admin.sendMessage(Utils.color("&7Banned &f" + onlinePlayer.getName() + "&7 for not listening to staff."));
-					banPlayer(onlinePlayer.getUniqueId(), "Not Listening to Staff", new Date(System.currentTimeMillis()+24*60*60*1000), admin.getName());
-					admin.closeInventory();
+					user.sendMessage(Utils.color("&7Banned &f" + onlinePlayer.getName() + "&7 for not listening to staff."));
+					banPlayer(onlinePlayer.getUniqueId(), "Not Listening to Staff", new Date(System.currentTimeMillis()+24*60*60*1000), user.getName());
+					cleanupUser(user, using);
 					break;
 				case 14:
-					admin.sendMessage(Utils.color("&7Banned &f" + onlinePlayer.getName() + "&7 for abusing."));
-					banPlayer(onlinePlayer.getUniqueId(), "Abusing", new Date(System.currentTimeMillis()+2*24*60*60*1000), admin.getName());
-					admin.closeInventory();
+					user.sendMessage(Utils.color("&7Banned &f" + onlinePlayer.getName() + "&7 for abusing."));
+					banPlayer(onlinePlayer.getUniqueId(), "Abusing", new Date(System.currentTimeMillis()+2*24*60*60*1000), user.getName());
+					cleanupUser(user, using);
 					break;
 				case 16:
-					admin.sendMessage(Utils.color("&7Banned &f" + onlinePlayer.getName() + "&7 for hacking."));
-					banPlayer(onlinePlayer.getUniqueId(), "Hacking", new Date(System.currentTimeMillis()+7*24*60*60*1000), admin.getName());
-					admin.closeInventory();
+					user.sendMessage(Utils.color("&7Banned &f" + onlinePlayer.getName() + "&7 for hacking."));
+					banPlayer(onlinePlayer.getUniqueId(), "Hacking", new Date(System.currentTimeMillis()+7*24*60*60*1000), user.getName());
+					cleanupUser(user, using);
 					break;
 				case 31:
-					admin.openInventory(Inventories.GUI_HOME_BAN().getInv());
+					user.openInventory(Inventories.GUI_HOME_BAN().getInv());
 					break;
 				default:
 					e.setCancelled(true);
@@ -197,9 +206,9 @@ public class ListenerInventory implements Listener {
 		}
 	}
 	
-	private Inventory banPlayerGUI(Player admin) {
+	private Inventory banPlayerGUI(Player user) {
 		int size = 45;
-		Inventory inv = Bukkit.createInventory(admin, size, "Ban Options");
+		Inventory inv = Bukkit.createInventory(user, size, "Ban Options");
 		for (int n = 0; n < size; n++) {
 			inv.setItem(n, Utils.item("&8---", "&8---", Material.BLACK_STAINED_GLASS_PANE));
 		}
@@ -209,5 +218,11 @@ public class ListenerInventory implements Listener {
 		inv.setItem(16, Utils.item("Hacking", "7 Days", Material.BLAZE_POWDER));
 		inv.setItem(31, Utils.item("Back", "Go Back", Material.ANVIL));
 		return inv;
+	}
+	
+	private void cleanupUser(Player user, List<UUID> using) {
+		user.closeInventory();
+		// No longer using the interface, remove the user from it.
+		using.remove(user.getUniqueId());
 	}
 }
